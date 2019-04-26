@@ -4,14 +4,12 @@ import com.crud.tasks.domain.TaskDto;
 import com.crud.tasks.mapper.TaskMapper;
 import com.crud.tasks.service.DbService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@CrossOrigin(origins = "*")//to informuje Springa że może otrzymywać żądania z zewn
+//serwerów znajdującyh się pod innymi domenami i ma na to zezwalać
 @RestController // to zmienia zwykła klasę POJO na kontroler
 //ogólem mówi Springowi,żeby utworzył w kontekście aplikacji Controller wraz z ResposeBody
 // Odpowiedź controllera defaultowa jest jako JSON
@@ -26,28 +24,35 @@ public class TaskController {
     private TaskMapper taskMapper;
 
 
-    @RequestMapping(method = RequestMethod.GET, value= "getTasks")
-    public List<TaskDto> getTasks(){
+    @RequestMapping(method = RequestMethod.GET, value = "getTasks")
+    public List<TaskDto> getTasks() {
         return taskMapper.mapToTaskDtoList(service.getALLTasks());
 
     }
 
-    @RequestMapping(method = RequestMethod.GET, value= "getTask")
-    public TaskDto getTask(Long taskId){
-        return new TaskDto(1L,"test title","test_content");
+    @RequestMapping(method = RequestMethod.GET, value = "getTask")
+    public TaskDto getTask(@RequestParam Long taskId) throws TaskNotFoundException {
+        return taskMapper.mapToTaskDto(service.getTask(taskId).orElseThrow(TaskNotFoundException::new));
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value= "deleteTask")
-    public void deleteTask(Long taskId){
+    @RequestMapping(method = RequestMethod.DELETE, value = "deleteTask")
+    public void deleteTask(@RequestParam Long taskId) {
+        service.deleteTask(taskId);
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value = "updateTask")
-    public TaskDto updateTask(Long oldId,String newTitle, String newContent){
-        return new TaskDto(1L,"Edited test title","Test content");
+//    @RequestMapping(method = RequestMethod.PUT, value = "updateTask")
+//    public TaskDto updateTask(Long id, String name, String desc) {
+//        TaskDto taskDto = new TaskDto(id, name, desc);
+//        return taskMapper.mapToTaskDto(service.saveTask(taskMapper.mapToTask(taskDto)));
+//    }
+
+    @RequestMapping(method = RequestMethod.PUT,value="updateTask")
+    public TaskDto updateTask(@RequestBody TaskDto taskDto){
+        return taskMapper.mapToTaskDto(service.saveTask(taskMapper.mapToTask(taskDto)));
     }
 
-    @RequestMapping(method = RequestMethod.POST, value= "createTask")
-    public void createTask(Long id,String title, String content){
-
+    @RequestMapping(method = RequestMethod.POST, value = "createTask")
+    public void createTask(@RequestBody TaskDto taskDto) {
+        service.saveTask(taskMapper.mapToTask(taskDto));
     }
 }
