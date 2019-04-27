@@ -1,4 +1,4 @@
-call runcrud.bat
+call C:\Users\asus\tasks\runcrud.bat
 if "%ERRORLEVEL%" == 0 goto startPage
 echo.
 echo Cannot start runcrud.bat
