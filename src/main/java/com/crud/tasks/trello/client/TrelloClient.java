@@ -3,37 +3,29 @@ package com.crud.tasks.trello.client;
 import com.crud.tasks.domain.CreatedTrelloCard;
 import com.crud.tasks.domain.TrelloBoardDto;
 import com.crud.tasks.domain.TrelloCardDto;
+import com.crud.tasks.trello.config.TrelloConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 
 @Component//w trakcie budowania kontekstu aplikacji
 //stworzy z klasy Beana
 public class TrelloClient {
-    //@Value - spring pobiera z pliku zasobów(application.properties)
-    //nazwę pola  @Value("${nazwa_pola}")
-    //następnie wstrzykuje do pola klasy TrelloClient
-    @Value("${trello.api.endpoint.prod}")
-    private String trelloApiEndpoint;
 
-    @Value("${trello.app.key}")
-    private String trelloAppKey;
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrelloClient.class);
 
-    @Value("${trello.app.token}")
-    private String trelloToken;
-
-    @Value("${trello.app.username}")
-    private String trelloUsername;
-
+    @Autowired
+    private TrelloConfig trelloConfig;
 
     @Autowired//wstrzykiwanie zależności
     private RestTemplate restTemplate;
@@ -42,19 +34,21 @@ public class TrelloClient {
     public List<TrelloBoardDto> getTrelloBoards() {
         URI url = buildUrl();
 
-        TrelloBoardDto[] boardResponse = restTemplate.getForObject(
-                url, TrelloBoardDto[].class);
+        try {
+            TrelloBoardDto[] boardResponse = restTemplate.getForObject(url, TrelloBoardDto[].class);
+            return Arrays.asList(Optional.ofNullable(boardResponse).orElse(new TrelloBoardDto[0]));
 
-                return Optional.ofNullable(boardResponse)
-                .map(response -> Arrays.asList(response))
-                .orElse(new ArrayList<>());
+        } catch (RestClientException e) {
+            LOGGER.error(e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
 
     private URI buildUrl() {
-        return UriComponentsBuilder.fromHttpUrl(trelloApiEndpoint + "/members/" + trelloUsername + "/boards")
-                .queryParam("key", trelloAppKey)
-                .queryParam("token", trelloToken)
+        return UriComponentsBuilder.fromHttpUrl(trelloConfig.getTrelloApiEndpoint() + "/members/" + trelloConfig.getTrelloUsername() + "/boards")
+                .queryParam("key", trelloConfig.getTrelloAppKey())
+                .queryParam("token", trelloConfig.getTrelloToken())
                 .queryParam("fields", "name,id")
                 .queryParam("lists", "all")
                 .build().encode().toUri();
@@ -63,14 +57,16 @@ public class TrelloClient {
 
     public CreatedTrelloCard createNewCard(TrelloCardDto trelloCardDto) {
 
-        URI url = UriComponentsBuilder.fromHttpUrl(trelloApiEndpoint + "/cards")
-                .queryParam("key", trelloAppKey)
-                .queryParam("token", trelloToken)
+        URI url = UriComponentsBuilder.fromHttpUrl(trelloConfig.getTrelloApiEndpoint() + "/cards")
+                .queryParam("key", trelloConfig.getTrelloAppKey())
+                .queryParam("token", trelloConfig.getTrelloToken())
                 .queryParam("name", trelloCardDto.getName())
                 .queryParam("desc", trelloCardDto.getDescription())
                 .queryParam("pos", trelloCardDto.getPos())
                 .queryParam("idList", trelloCardDto.getListId())
+//                .queryParam("votes",trelloCardDto.getBadgesDto().getVotes())
+//                .queryParam("attachmentsByType",trelloCardDto.getBadgesDto().getAttachmentsByType())
                 .build().encode().toUri();
         return restTemplate.postForObject(url, null, CreatedTrelloCard.class);
-    }
+           }
 }

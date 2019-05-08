@@ -9,7 +9,7 @@ public class CoreConfiguration {
 
     @Bean
     //RestTemplate to klasa dostarczana przez Springa;
-    //umożliwia realizacje żądań HTTO pomiezy serwerami
+    //umożliwia realizacje żądań HTTP pomiezy serwerami
     public RestTemplate restTemplate(){
         return new RestTemplate();
     }
