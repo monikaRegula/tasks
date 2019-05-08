@@ -41,7 +41,7 @@ public class TrelloClientTest {
         when(trelloConfig.getTrelloToken()).thenReturn("test");
     }
 
-   /* @Test
+    /*@Test
     public void shouldFetchTrelloBoards() throws URISyntaxException {
         //given
         TrelloBoardDto[] trelloBoards = new TrelloBoardDto[1];
@@ -92,7 +92,7 @@ public class TrelloClientTest {
     }*/
 
 
-    @Test
+  @Test
     public void shouldReturnEmptyList() throws URISyntaxException {
         //given
         URI url = new URI("http://test.com/members/trelomorelo1/boards?key=test&token=test&fields=name,id&lists=all");
