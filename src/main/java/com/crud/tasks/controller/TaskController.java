@@ -40,11 +40,6 @@ public class TaskController {
         service.deleteTask(taskId);
     }
 
-//    @RequestMapping(method = RequestMethod.PUT, value = "updateTask")
-//    public TaskDto updateTask(Long id, String name, String desc) {
-//        TaskDto taskDto = new TaskDto(id, name, desc);
-//        return taskMapper.mapToTaskDto(service.saveTask(taskMapper.mapToTask(taskDto)));
-//    }
 
     @RequestMapping(method = RequestMethod.PUT,value="updateTask")
     public TaskDto updateTask(@RequestBody TaskDto taskDto){
